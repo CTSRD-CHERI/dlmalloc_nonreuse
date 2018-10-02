@@ -1,6 +1,6 @@
 CC?=clang
 LD?=ld.lld
-DEBUG?=1
+DEBUG?=0
 
 CFLAGS=-Wall -Werror
 LDFLAGS=

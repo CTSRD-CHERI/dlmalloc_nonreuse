@@ -424,7 +424,7 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 #define HAVE_MMAP 1
 #define FOOTERS 0
 #define MAX_RELEASE_CHECK_RATE 4095
-#define FREEBUF_MODE 1
+#define FREEBUF_MODE 0
 //#define MALLOC_UTRACE
 
 // Override default non-reuse compile-time parameters here.
