@@ -121,14 +121,15 @@ static int malloc_utrace = 1;
 static int malloc_utrace_suspend = 0;
 
 typedef struct {
-  void *p;
-  size_t s;
-  void *r;
+  void *p;  /* input pointer; NULL for malloc and calloc */
+  size_t s; /* size request; 0 for free */
+  void *r; /* result pointer */
+  void *cpc; /* caller PC */
 } malloc_utrace_t;
 
 #define	UTRACE(a, b, c)\
   if(malloc_utrace && malloc_utrace_suspend == 0) {\
-    malloc_utrace_t ut = {a, b, c};\
+    malloc_utrace_t ut = {a, b, c, __builtin_return_address(0)}; \
     utrace(&ut, sizeof(ut));\
   }
 #else
