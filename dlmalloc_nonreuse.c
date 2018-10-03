@@ -2956,7 +2956,6 @@ dlfree_internal(void* mem) {
 #if FREEBUF_MODE
     if (1) {
 #else // FREEBUF_MODE
-    UTRACE(mem, 0, 0);
     if(!PREACTION(fm)) {
 #if SWEEP_STATS
       fm->sweepTimes++;
@@ -3147,6 +3146,7 @@ dlfree(void* mem) {
 #endif /* FOOTERS */
 
 #else // FREEBUF_MODE
+  UTRACE(mem, 0, 0);
   dlfree_internal(mem);
 #endif
 }
