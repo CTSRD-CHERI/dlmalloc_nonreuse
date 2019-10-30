@@ -1679,15 +1679,14 @@ static int init_mparams(void) {
     } else
       mparams.min_freebufbytes = DEFAULT_MIN_FREEBUFBYTES;
 
+    mparams.max_freebuf_percent = DEFAULT_FREEBUF_PERCENT;
     if ((valuestr = getenv("MALLOC_MAX_FREEBUF_PERCENT")) != NULL) {
       value = strtol(valuestr, &endp, 0);
-      if (value == 0 && *endp != '\0')
-	value = DEFAULT_FREEBUF_PERCENT;
       if (value < 0)
 	value = MAX_SIZE_T;
-      mparams.max_freebuf_percent = (double)value / 100.0;
-    } else
-      mparams.max_freebuf_percent = DEFAULT_FREEBUF_PERCENT;
+      if (value != 0 || *endp == '\0')
+        mparams.max_freebuf_percent = (double)value / 100.0;
+    }
 
 #if SUPPORT_UNMAP
     if ((valuestr = getenv("MALLOC_UNMAP_THRESHOLD")) != NULL) {
