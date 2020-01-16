@@ -4125,20 +4125,41 @@ int dlmallopt(int param_number, int value) {
 }
 
 __attribute__((always_inline))
-size_t dlmalloc_allocation_size(void* mem) {
+void *dlmalloc_underlying_allocation(void *mem) {
+  /*
+   * unbound_ptr only succeeds if mem points to the beginning of a legitimate
+   * allocation (because a consumer can't forge a "pad" capability with VMMAP
+   * permissions).
+   */
   if (mem != NULL) {
-    mchunkptr p = mem2chunk(unbound_ptr(gm, NULL, mem));
-    if (is_inuse(p))
-      return chunksize(p) - overhead_for(p);
+    void *ptr = unbound_ptr(gm, NULL, mem);
+    mchunkptr chunk = mem2chunk(ptr);
+    if (is_inuse(chunk)) {
+      /* bound the pointer without remove VMMAP permission */
+      void *bounded = ptr;
+#ifdef CHERI_SET_BOUNDS
+      bounded = __builtin_cheri_bounds_set(bounded, chunksize(chunk) - overhead_for(chunk));
+#endif
+      bounded = __builtin_cheri_perms_and(bounded, CHERI_PERMS_USERSPACE_DATA);
+      chunk->pad = ptr;
+      return bounded;
+      /*return bound_ptr(ptr, chunksize(chunk) - overhead_for(chunk));*/
+    }
   }
-  return 0;
+  return NULL;
 }
 
 size_t dlmalloc_usable_size(void* mem) {
+  size_t allocation_size = 0;
+  if (mem != NULL) {
+    mchunkptr p = mem2chunk(unbound_ptr(gm, NULL, mem));
+    if (is_inuse(p))
+      allocation_size = chunksize(p) - overhead_for(p);
+  }
+
 #ifndef __CHERI_PURE_CAPABILITY__
-  return dlmalloc_allocation_size(mem);
+  return allocation_size;
 #else
-  size_t allocation_size = dlmalloc_allocation_size(mem);
   size_t cap_length = __builtin_cheri_length_get(mem);
   return cap_length < allocation_size ? cap_length : allocation_size;
 #endif

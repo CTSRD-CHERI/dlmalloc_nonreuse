@@ -730,7 +730,7 @@ extern "C" {
 #define dlmallopt              mallopt
 #define dlmalloc_trim          malloc_trim
 #define dlmalloc_stats         malloc_stats
-#define dlmalloc_allocation_size malloc_allocation_size
+#define dlmalloc_underlying_allocation malloc_underlying_allocation
 #define dlmalloc_usable_size   malloc_usable_size
 #define dlmalloc_footprint     malloc_footprint
 #define dlmalloc_max_footprint malloc_max_footprint
@@ -990,14 +990,19 @@ DLMALLOC_EXPORT int  dlmalloc_trim(size_t);
 DLMALLOC_EXPORT void  dlmalloc_stats(void);
 
 /*
-  malloc_allocation_size(void* p);
+  malloc_underlying_allocation(void* p);
 
-  Returns the number of bytes underlying an allocated chunk, which may be more
-  than you requested (although often not) due to alignment and minimum size
-  constraints. Returns 0 if the base of p does not correspond to the base
-  of an allocated chunk.
+  Given a pointer allocated by dlmalloc that may have had
+  its bounds reduced, return a capability with the bounds of
+  the original allocation. Without CHERI, just return the
+  passed-in pointer.
+
+  Returns NULL or errors out if the passed-in capability was
+  not allocated by this allocator or if the passed-in
+  capability's base does not correspond to the original
+  allocation's.
 */
-DLMALLOC_EXPORT size_t dlmalloc_allocation_size(void*);
+DLMALLOC_EXPORT void *dlmalloc_underlying_allocation(void*);
 
 /*
   malloc_usable_size(void* p);
@@ -1013,8 +1018,8 @@ DLMALLOC_EXPORT size_t dlmalloc_allocation_size(void*);
   p = malloc(n);
   assert(malloc_usable_size(p) >= 256);
 
-  In purecap CHERI, this amounts to taking the minimum of the result of
-  dlmalloc_allocation_size() and the length of the passed-in capability.
+  In purecap CHERI, the returned value is the minimum of the number of bytes
+  underlying the allocated chunk and the length of the passed-in capability.
 */
 DLMALLOC_EXPORT size_t dlmalloc_usable_size(void*);
 
