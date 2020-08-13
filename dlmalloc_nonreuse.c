@@ -4048,7 +4048,7 @@ int dlposix_memalign(void** pp, size_t alignment, size_t bytes) {
 }
 
 void *
-dlalloc_aligned(size_t alignment, size_t size) {
+dlaligned_alloc(size_t alignment, size_t size) {
   int error;
   void *mem;
 
