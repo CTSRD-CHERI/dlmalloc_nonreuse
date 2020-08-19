@@ -3734,7 +3734,7 @@ void* dlcalloc(size_t n_elements, size_t elem_size) {
       req = MAX_SIZE_T; /* force downstream failure on overflow */
   }
   mem = dlmalloc_internal_unbounded(req);
-#ifndef CAPREVOKE
+#if !ZERO_MEMORY
   if (mem != 0 && calloc_must_clear(mem2chunk(mem)))
     memset(mem, 0, req);
 #endif
