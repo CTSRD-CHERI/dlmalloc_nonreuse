@@ -72,6 +72,7 @@
 #include <cheri/cherireg.h>
 #ifdef CAPREVOKE
 #include <sys/caprevoke.h>
+#include <sys/stdatomic.h>
 #include <cheri/libcaprevoke.h>
 #endif /* CAPREVOKE */
 #endif /* __CHERI_PURE_CAPABILITY__ */
@@ -1151,6 +1152,10 @@ static struct malloc_state _gm_;
 #define is_global(M)       ((M) == &_gm_)
 
 #define is_initialized(M)  ((M)->top != 0)
+
+#ifdef CAPREVOKE
+static volatile const struct caprevoke_info *cri;
+#endif
 
 /* -------------------------- system alloc setup ------------------------- */
 
@@ -3676,11 +3681,17 @@ malloc_revoke_internal(const char *reason) {
 
 #ifdef CAPREVOKE
   struct caprevoke_stats crst;
-  uint64_t start_epoch;
-  caprevoke(CAPREVOKE_LAST_PASS|CAPREVOKE_IGNORE_START|CAPREVOKE_NO_WAIT_OK,
-	    0, &crst);
-  start_epoch = crst.epoch_init;
-  while (!caprevoke_epoch_clears(crst.epoch_fini, start_epoch)) {
+  if (cri == NULL) {
+    int error;
+    error = caprevoke_shadow(CAPREVOKE_SHADOW_INFO_STRUCT, NULL,
+        __DECONST(void **, &cri));
+    assert(error == 0);
+  }
+
+  atomic_thread_fence(memory_order_acq_rel);
+  caprevoke_epoch start_epoch = cri->epoch_enqueue;
+
+  while (!caprevoke_epoch_clears(cri->epoch_dequeue, start_epoch)) {
     caprevoke(CAPREVOKE_LAST_PASS, start_epoch, &crst);
   }
 #endif
