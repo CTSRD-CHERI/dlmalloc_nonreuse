@@ -3843,6 +3843,7 @@ static mchunkptr try_realloc_chunk(mstate m, mchunkptr p, size_t nb) {
       }
     }
     else if(!cinuse(next)) {
+      assert(!cdirty(next));
       size_t nextsize = chunksize(next);
       if (oldsize + nextsize >= nb) {
         size_t rsize = oldsize + nextsize - nb;
