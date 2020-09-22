@@ -1830,6 +1830,7 @@ static void do_check_top_chunk(mstate m, mchunkptr p) {
   assert(sz == ((sp->base + sp->size) - (char*)p) - TOP_FOOT_SIZE);
   assert(pinuse(p));
   assert(!pinuse(chunk_plus_offset(p, sz)));
+  assert(!cdirty(p));
 }
 
 /* Check properties of (inuse) mmapped chunks */
@@ -3807,6 +3808,7 @@ static mchunkptr try_realloc_chunk(mstate m, mchunkptr p, size_t nb) {
 #endif
     }
     else if (next == m->top) {  /* extend into top */
+      assert(!cdirty(next));
       if (oldsize + m->topsize > nb) {
         size_t newsize = oldsize + m->topsize;
         size_t newtopsize = newsize - nb;
