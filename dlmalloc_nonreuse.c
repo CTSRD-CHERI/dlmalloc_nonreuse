@@ -652,7 +652,6 @@ struct malloc_chunk {
   /*
    * It is a documented requirement that struct malloc_chunk be a power
    * of two in size.
-   * On 256-bit, there will be 16-bytes of padding before pad.
    */
   void* pad;
 #endif
@@ -895,7 +894,6 @@ struct malloc_tree_chunk {
   /*
    * It is a documented requirement that struct malloc_chunk be a power
    * of two in size.
-   * On 256-bit, there will be 16-bytes of padding before pad.
    */
   void* pad;
 #endif
